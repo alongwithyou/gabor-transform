@@ -9,6 +9,7 @@ void convolve_spatial(struct image_s img_in, struct image_s img_out, struct imag
 
 void convolve_frequency(struct image_s img_in, struct image_s img_out, struct image_s filt);
 
+void cleanup_fftw();
 
 
 #endif

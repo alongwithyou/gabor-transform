@@ -11,9 +11,10 @@
 // Create a bank of Gabor filters for processing
 struct gabor_filter_bank_s init_gabor_filter_bank(int filt_height, int filt_width){
 
+    // Initialize the structure
     struct gabor_filter_bank_s bank;
 
-    int i = 0;
+    int i = 0; // Loop counter
     const double k = (1.0/3.0)*sqrt(PI/log(2)); // relationship between frequency and gaussian width
 
     // Loop over each frequency and angle
@@ -53,46 +54,20 @@ struct image_s init_gabor_filter(double freq, double angle, double alpha, int fi
 
     struct image_s filt;
 
-    if (filt_width == 0 || filt_height == 0){
-        filt.width = ceil((1.0/alpha)*10)+1;
-        filt.height = ceil((1.0/alpha)*10)+1;
-    } else {
-        filt.width = filt_width;
-        filt.height = filt_height;
-    }
+    // Initialize the filter
+    filt = init_image_empty(filt_height, filt_width);
 
     // Find the center pixel
     int center_x = filt.width/2;
     int center_y = filt.height/2;
-
-    // Allocate the filter array
-    filt.raw_vals = (double complex*)fftw_malloc(filt.width*filt.height*sizeof(double complex));
-    if (filt.raw_vals == NULL){
-        fprintf(stderr, "Malloc failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    // Make an array of pointers into each row for 2d indexing
-    filt.vals = (double complex**)malloc(filt.height*sizeof(double complex*));
-    if (filt.vals == NULL){
-        fprintf(stderr, "Malloc failed\n");
-        exit(EXIT_FAILURE);
-    }
-    for (unsigned int i = 0; i < filt.height; i++){
-        filt.vals[i] = filt.raw_vals + filt.width*i;
-    }
 
     // Populate the filter with proper values (http://en.wikipedia.org/wiki/Gabor_filter)
     for (int i = 0; i < filt.height; i++){
         for (int j = 0; j < filt.width; j++){
             double x = j*cos(angle) + i*sin(angle); // Gaussian is rot. symm, we only need this for sinusoid
 
-            // Wikipedia formula
-            //filt.vals[i][j] = cexp(-1*(pow((j-center_x), 2) + pow((i-center_y), 2))/(2*pow(sigma, 2)))*cexp((double complex)I*2*PI*freq*x);
-
             // adjusted from Navarro
-            filt.vals[i][j] = pow(alpha, 2)*exp(-1*PI*pow(alpha, 2)*(pow((j-center_x), 2) + pow((i-center_y), 2)))*cos(2*PI*freq*x);
-            //filt.vals[i][j] = pow(alpha, 2)*(cexp(-1*PI*pow(alpha, 2)*(pow((j-center_x), 2) + pow((i-center_y), 2)))*cexp((double complex)I*2*PI*freq*x));
+            filt.vals[i][j] = pow(alpha, 2)*(cexp(-1*PI*pow(alpha, 2)*(pow((j-center_x), 2) + pow((i-center_y), 2)))*cexp((double complex)I*2*PI*freq*x));
         }
     }
 

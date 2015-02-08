@@ -10,11 +10,9 @@
 
 struct image_s init_image_path(char* filepath){
 
+    // Define structures for reading the image
     struct image_s img;
-
     FIBITMAP* freeimg;
-    FIBITMAP* grayimg;
-    FIBITMAP* compleximg;
 
     // Find the image format from file
     FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
@@ -41,23 +39,22 @@ struct image_s init_image_path(char* filepath){
     }
 
     // Convert the image to grayscale, double complex.
-    grayimg = FreeImage_ConvertToGreyscale(freeimg);
-    FreeImage_Unload(freeimg);
-    freeimg = NULL;
-    compleximg = FreeImage_ConvertToType(grayimg, FIT_COMPLEX, TRUE);
-    FreeImage_Unload(grayimg);
-    grayimg = NULL;
+    freeimg = FreeImage_ConvertToGreyscale(freeimg);
+    freeimg = FreeImage_ConvertToType(freeimg, FIT_COMPLEX, TRUE);
 
-    // Initialize the image
-    img = init_image_empty(FreeImage_GetWidth(compleximg), FreeImage_GetHeight(compleximg));
+    // Initialize the image structure
+    img = init_image_empty(FreeImage_GetWidth(freeimg), FreeImage_GetHeight(freeimg));
 
     // Copy values into new image array
     for (unsigned int i = 0; i < img.height; i++){
-        double complex* line = (double complex*)FreeImage_GetScanLine(compleximg, i);
+        double complex* line = (double complex*)FreeImage_GetScanLine(freeimg, i);
         for (unsigned int j = 0; j < img.width; j++){
             img.vals[i][j] = line[j];
         }
     }
+
+    // Free the image
+    FreeImage_Unload(freeimg);
 
     return img;
 }
@@ -107,6 +104,7 @@ void free_image(struct image_s img){
 
 void save_image(struct image_s img, char* prefix){
 
+    // Allocate byte arrays for the four image "channels"
     uint8_t* abs_img;
     uint8_t* arg_img;
     uint8_t* real_img;
@@ -174,13 +172,7 @@ void save_image(struct image_s img, char* prefix){
         }
     }
 
-    printf("abs: %f, %f\n", abs_min, abs_max);
-    printf("arg: %f, %f\n", arg_min, arg_max);
-    printf("real: %f, %f\n", real_min, real_max);
-    printf("imag: %f, %f\n", imag_min, imag_max);
-
-
-    // Copy the real and imaginary values in
+    // Copy the real and imaginary values in, scaling to fit in 8 bits
     for (unsigned int i = 0; i < (img.height*img.width); i++){
         abs_img[i] = ((cabs(img.raw_vals[i]) - abs_min) / (abs_max - abs_min))*255;
         arg_img[i] = ((carg(img.raw_vals[i]) - arg_min) / (arg_max - arg_min))*255;
@@ -188,13 +180,14 @@ void save_image(struct image_s img, char* prefix){
         imag_img[i] = ((cimag(img.raw_vals[i]) - imag_min) / (imag_max - imag_min))*255;
     }
 
+    // Create the FreeImages for writing
     FIBITMAP *abs_freeimg = FreeImage_ConvertFromRawBits(abs_img, img.width, img.height, img.width, 8, 0, 0, 0, FALSE);
     FIBITMAP *arg_freeimg = FreeImage_ConvertFromRawBits(arg_img, img.width, img.height, img.width, 8, 0, 0, 0, FALSE);
     FIBITMAP *real_freeimg = FreeImage_ConvertFromRawBits(real_img, img.width, img.height, img.width, 8, 0, 0, 0, FALSE);
     FIBITMAP *imag_freeimg = FreeImage_ConvertFromRawBits(imag_img, img.width, img.height, img.width, 8, 0, 0, 0, FALSE);
 
+    // Write the files
     char pathname[200];
-
     snprintf(pathname, 200, "%s_abs.png", prefix);
     FreeImage_Save(FIF_PNG, abs_freeimg, pathname, 0);
     snprintf(pathname, 200, "%s_arg.png", prefix);
@@ -204,6 +197,7 @@ void save_image(struct image_s img, char* prefix){
     snprintf(pathname, 200, "%s_imag.png", prefix);
     FreeImage_Save(FIF_PNG, imag_freeimg, pathname, 0);
 
+    // Free memory
     FreeImage_Unload(abs_freeimg);
     FreeImage_Unload(arg_freeimg);
     FreeImage_Unload(real_freeimg);

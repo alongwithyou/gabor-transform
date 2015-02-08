@@ -4,6 +4,13 @@
 #include <complex.h>
 #include <fftw3.h>
 
+
+fftw_plan img_in_plan;
+fftw_plan filt_plan;
+fftw_plan img_out_plan;
+int fft_isplanned = 0;
+
+
 // FFTW uses the image origin (0,0) as the FFT origin.
 // Normally it doesn't matter because I can take the abs in the freq. domain
 // But, Gabor filter is a complex filter, so I can't.
@@ -89,8 +96,7 @@ void convolve_frequency(struct image_s img_in_raw, struct image_s img_out_raw, s
     int width = img_in_raw.width;
 
     // Allocate all 5 needed images
-    struct image_s img_in = init_image_empty(height, width);
-    struct image_s img_out = init_image_empty(height, width);
+    struct image_s img = init_image_empty(height, width);
     struct image_s img_fft = init_image_empty(height, width);
     struct image_s filt = init_image_empty(height, width);
     struct image_s filt_fft = init_image_empty(height, width);
@@ -98,18 +104,24 @@ void convolve_frequency(struct image_s img_in_raw, struct image_s img_out_raw, s
     // Make the FFT plans
     printf("Planning...");
     fflush(stdout);
-    fftw_plan img_in_plan = fftw_plan_dft_2d(height, width, img_in.raw_vals, img_fft.raw_vals, FFTW_FORWARD, FFTW_MEASURE);
+    img_in_plan = fftw_plan_dft_2d(height, width, img.raw_vals, img_fft.raw_vals, FFTW_FORWARD, FFTW_MEASURE);
     printf("...");
     fflush(stdout);
-    fftw_plan filt_plan = fftw_plan_dft_2d(height, width, filt.raw_vals, filt_fft.raw_vals, FFTW_FORWARD, FFTW_MEASURE);
+    filt_plan = fftw_plan_dft_2d(height, width, filt.raw_vals, filt_fft.raw_vals, FFTW_FORWARD, FFTW_MEASURE);
     printf("...");
     fflush(stdout);
-    fftw_plan img_out_plan = fftw_plan_dft_2d(height, width, img_fft.raw_vals, img_out.raw_vals, FFTW_BACKWARD, FFTW_MEASURE);
+    img_out_plan = fftw_plan_dft_2d(height, width, img_fft.raw_vals, img.raw_vals, FFTW_BACKWARD, FFTW_MEASURE);
     printf("done\n");
+    fft_isplanned = 1;
+
+    // Flag the FFT as planned
+    if (~fft_isplanned){
+        fft_isplanned = 1;
+    }
 
     // Copy the image and filter data into the planned arrays
     for (unsigned int i = 0; i < width*height; i++){
-        img_in.raw_vals[i] = img_in_raw.raw_vals[i];
+        img.raw_vals[i] = img_in_raw.raw_vals[i];
     }
     for (unsigned int i = 0; i < width*height; i++){
         filt.raw_vals[i] = filt_raw.raw_vals[i];
@@ -130,16 +142,24 @@ void convolve_frequency(struct image_s img_in_raw, struct image_s img_out_raw, s
     // Execute the inverse transform
     fftw_execute(img_out_plan);
 
-    // Copy data to output image
+    // Copy data to output image, with normalization
     for (unsigned int i = 0; i < width*height; i++){
-        img_out_raw.raw_vals[i] = img_out.raw_vals[i]/(height*width);
+        img_out_raw.raw_vals[i] = img.raw_vals[i]/(height*width);
     }
 
     // Free everything we made
-    free_image(img_in);
-    free_image(img_out);
+    free_image(img);
     free_image(img_fft);
     free_image(filt);
     free_image(filt_fft);
 
+}
+
+void cleanup_fftw(){
+    if (fft_isplanned){
+        fftw_destroy_plan(img_in_plan);
+        fftw_destroy_plan(filt_plan);
+        fftw_destroy_plan(img_out_plan);
+        fft_isplanned = 0;
+    }
 }

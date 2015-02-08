@@ -46,6 +46,8 @@ int main(int argc, char* argv[]){
 
     free_gabor_filter_bank(filt_bank);
 
+    cleanup_fftw();
+
     FreeImage_DeInitialise();
 
     return 0;

@@ -107,10 +107,15 @@ struct image_s init_gabor_filter(double freq, double angle, double alpha, int fi
     // Populate the filter with proper values (http://en.wikipedia.org/wiki/Gabor_filter)
     for (int i = 0; i < filt.height; i++){
         for (int j = 0; j < filt.width; j++){
-            double x = j*cos(angle) + i*sin(angle); // Gaussian is rot. symm, we only need this for sinusoid
+
+            double x_shift = j - center_x;
+            double y_shift = i - center_y;
+
+            double x = x_shift*cos(angle) + y_shift*sin(angle); // Gaussian is rot. symm, we only need this for sinusoid
+            double y = y_shift*cos(angle) - x_shift*sin(angle);
 
             // adjusted from Navarro
-            filt.vals[i][j] = pow(alpha, 2)*(cexp(-1*PI*pow(alpha, 2)*(pow((j-center_x), 2) + pow((i-center_y), 2)))*cexp((double complex)I*2*PI*freq*x));
+            filt.vals[i][j] = pow(alpha, 2)*(cexp(-1*PI*pow(alpha, 2)*(pow(x, 2) + pow(y, 2)))*cexp((double complex)I*2*PI*freq*x));
         }
     }
 

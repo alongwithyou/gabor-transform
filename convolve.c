@@ -95,7 +95,7 @@ void convolve_frequency(struct image_s img_in_raw, struct image_s img_out_raw, s
     int height = img_in_raw.height;
     int width = img_in_raw.width;
 
-    // Allocate all 5 needed images
+    // Allocate all needed images
     struct image_s img = init_image_empty(height, width);
     struct image_s img_fft = init_image_empty(height, width);
     struct image_s filt = init_image_empty(height, width);

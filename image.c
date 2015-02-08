@@ -8,6 +8,8 @@
 #include <FreeImage.h>
 #include <fftw3.h>
 
+#define PI 3.1415926535897932384
+
 struct image_s init_image_path(char* filepath){
 
     // Define structures for reading the image
@@ -86,6 +88,33 @@ struct image_s init_image_empty(unsigned int width, unsigned int height){
     }
 
     return img;
+
+}
+
+
+
+struct image_s init_gabor_filter(double freq, double angle, double alpha, int filt_height, int filt_width){
+
+    struct image_s filt;
+
+    // Initialize the filter
+    filt = init_image_empty(filt_height, filt_width);
+
+    // Find the center pixel
+    int center_x = filt.width/2;
+    int center_y = filt.height/2;
+
+    // Populate the filter with proper values (http://en.wikipedia.org/wiki/Gabor_filter)
+    for (int i = 0; i < filt.height; i++){
+        for (int j = 0; j < filt.width; j++){
+            double x = j*cos(angle) + i*sin(angle); // Gaussian is rot. symm, we only need this for sinusoid
+
+            // adjusted from Navarro
+            filt.vals[i][j] = pow(alpha, 2)*(cexp(-1*PI*pow(alpha, 2)*(pow((j-center_x), 2) + pow((i-center_y), 2)))*cexp((double complex)I*2*PI*freq*x));
+        }
+    }
+
+    return filt;
 
 }
 

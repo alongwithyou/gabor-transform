@@ -5,11 +5,13 @@
 
 void shift_filter(struct image_s filt);
 
-void convolve_spatial(struct image_s img_in, struct image_s img_out, struct image_s filt);
-
 void convolve_frequency(struct image_s img_in, struct image_s img_out, struct image_s filt);
 
 void cleanup_fftw();
+
+void convolve_spatial(struct image_s img_in, struct image_s img_out, struct image_s filt);
+
+
 
 
 #endif

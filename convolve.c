@@ -4,13 +4,11 @@
 #include <complex.h>
 #include <fftw3.h>
 
-
 fftw_plan img_in_plan;
 fftw_plan filt_plan;
 fftw_plan img_out_plan;
 int fft_isplanned = 0;
 
-int q = 0;
 
 
 // FFTW uses the image origin (0,0) as the FFT origin.
@@ -55,37 +53,6 @@ void shift_filter(struct image_s filt){
         filt.raw_vals[i] = filt_shift.raw_vals[i];
     }
     free_image(filt_shift);
-
-}
-
-// This is as unoptomized as the American Congress
-void convolve_spatial(struct image_s img_in, struct image_s img_out, struct image_s filt){
-
-    // Find the center pixel
-    int center_x = filt.width/2;
-    int center_y = filt.height/2;
-
-    // iterate over each image pixel
-    for (unsigned int i = 0; i < img_in.height; i++){
-        printf("%u\n", i);
-        for (unsigned int j = 0; j < img_in.width; j++){
-
-            img_out.vals[i][j] = 0;
-
-            // Iterate over each filter pixel
-            for (unsigned int m = 0; m < filt.height; m++){
-                for (unsigned int n = 0; n < filt.width; n++){
-
-                    // Convolve
-                    int img_x = ((n - center_x) + j) % img_in.width;
-                    int img_y = ((m - center_y) + i) % img_in.height;
-                    img_out.vals[i][j] += img_in.vals[img_x][img_y] * filt.vals[m][n];
-
-                }
-            }
-
-        }
-    }
 
 }
 
@@ -165,3 +132,37 @@ void cleanup_fftw(){
         fft_isplanned = 0;
     }
 }
+
+// This is as unoptomized as the American Congress
+void convolve_spatial(struct image_s img_in, struct image_s img_out, struct image_s filt){
+
+    // Find the center pixel
+    int center_x = filt.width/2;
+    int center_y = filt.height/2;
+
+    // iterate over each image pixel
+    for (unsigned int i = 0; i < img_in.height; i++){
+        printf("%u\n", i);
+        for (unsigned int j = 0; j < img_in.width; j++){
+
+            img_out.vals[i][j] = 0;
+
+            // Iterate over each filter pixel
+            for (unsigned int m = 0; m < filt.height; m++){
+                for (unsigned int n = 0; n < filt.width; n++){
+
+                    // Convolve
+                    int img_x = ((n - center_x) + j) % img_in.width;
+                    int img_y = ((m - center_y) + i) % img_in.height;
+                    img_out.vals[i][j] += img_in.vals[img_x][img_y] * filt.vals[m][n];
+
+                }
+            }
+
+        }
+    }
+
+}
+
+
+

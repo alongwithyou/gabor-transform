@@ -165,4 +165,3 @@ void convolve_spatial(struct image_s img_in, struct image_s img_out, struct imag
 }
 
 
-

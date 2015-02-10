@@ -93,38 +93,6 @@ struct image_s init_image_empty(unsigned int width, unsigned int height){
 
 
 
-struct image_s init_gabor_filter(double freq, double angle, double alpha, int filt_height, int filt_width){
-
-    struct image_s filt;
-
-    // Initialize the filter
-    filt = init_image_empty(filt_height, filt_width);
-
-    // Find the center pixel
-    int center_x = filt.width/2;
-    int center_y = filt.height/2;
-
-    // Populate the filter with proper values (http://en.wikipedia.org/wiki/Gabor_filter)
-    for (int i = 0; i < filt.height; i++){
-        for (int j = 0; j < filt.width; j++){
-
-            double x_shift = j - center_x;
-            double y_shift = i - center_y;
-
-            double x = x_shift*cos(angle) + y_shift*sin(angle); // Gaussian is rot. symm, we only need this for sinusoid
-            double y = y_shift*cos(angle) - x_shift*sin(angle);
-
-            // adjusted from Navarro
-            filt.vals[i][j] = pow(alpha, 2)*(cexp(-1*PI*pow(alpha, 2)*(pow(x, 2) + pow(y, 2)))*cexp((double complex)I*2*PI*freq*x));
-        }
-    }
-
-    return filt;
-
-}
-
-
-
 void free_image(struct image_s img){
 
     fftw_free(img.raw_vals);

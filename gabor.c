@@ -9,11 +9,14 @@
 
 #define PI 3.1415926535897932384
 
-struct gabor_filter_bank_s init_gabor_filter_bank_default(){
+struct gabor_filter_bank_s init_gabor_filter_bank_default(int height, int width){
 
     const int num_filters = 16;
 
     struct gabor_filter_bank_s bank;
+
+    bank.height = height;
+    bank.width = width;
 
     // Allocate the arrays within the filter bank
     for (int i = 0; i < num_filters; i++){
@@ -62,10 +65,12 @@ void free_gabor_filter_bank(struct gabor_filter_bank_s bank){
     free(bank.angles);
     free(bank.freqs);
     free(bank.sigmas);
+    bank.height = 0;
+    bank.width = 0;
 
 }
 
-struct image_s init_gabor_filter(double freq, double angle, double sigma, int filt_height, int filt_width){
+struct image_s init_gabor_filter_from_params(double freq, double angle, double sigma, int filt_height, int filt_width){
 
     struct image_s filt;
 
@@ -92,14 +97,17 @@ struct image_s init_gabor_filter(double freq, double angle, double sigma, int fi
 
             // My version
             filt.vals[i][j] = pow(freq*sqrt(PI)/(3*sqrt(log(2))),2)*cexp(-1 * (pow(x, 2) + pow(y,2))/(2 * pow(sigma, 2))) * cexp((double complex)I*2*PI*freq*x);
-            //filt.vals[i][j] = cexp((double complex)I*2*PI*freq*x);
-
-            //filt.vals[i][j] = cexp(-1 * (pow(x, 2) + pow(y,2))/(2 * pow(sigma, 2)));
 
         }
     }
 
     return filt;
+
+}
+
+struct image_s init_gabor_filter_from_bank(struct gabor_filter_bank_s bank, int filter_num){
+
+    return init_gabor_filter_from_params(bank.freqs[filter_num], bank.angles[filter_num], bank.sigmas[filter_num], bank.height, bank.width);
 
 }
 
@@ -122,7 +130,7 @@ void disp_gabor_filter_bank(struct gabor_filter_bank_s bank){
     for (int f = 0; f < 16; f++){
 
         // initialize a temporary filter
-        struct image_s temp_filt = init_gabor_filter(bank.freqs[f], bank.angles[f], bank.sigmas[f], height, width);
+        struct image_s temp_filt = init_gabor_filter_from_params(bank.freqs[f], bank.angles[f], bank.sigmas[f], height, width);
 
         // Load it in
         for (unsigned int i = 0; i < width*height; i++){
@@ -153,6 +161,9 @@ void disp_gabor_filter_bank(struct gabor_filter_bank_s bank){
     free_image(filt_fft);
 
 }
+
+
+
 void simulate_gabor(struct image_s img){
 
     // Build a structure for input and output
@@ -182,7 +193,7 @@ void simulate_gabor(struct image_s img){
             double alpha = k * f;
 
             // Build the filter
-            gabor_filter = init_gabor_filter(f, (PI/4.0)*angle, alpha, img.height, img.width);
+            gabor_filter = init_gabor_filter_from_params(f, (PI/4.0)*angle, alpha, img.height, img.width);
 
             // Apply the filter
             convolve_frequency(img, img_filtered[i], gabor_filter);
@@ -209,7 +220,7 @@ void simulate_gabor(struct image_s img){
             int filt_height = 20*(freq+1) + 1;
 
             // Build the filter
-            gabor_filter = init_gabor_filter(f, (PI/4.0)*angle, alpha, filt_height, filt_width);
+            gabor_filter = init_gabor_filter_from_params(f, (PI/4.0)*angle, alpha, filt_height, filt_width);
 
             // Find the center pixel
             int center_x = gabor_filter.width/2;

@@ -1,4 +1,6 @@
 #include "convolve.h"
+#include "types.h"
+#include "gabor.h"
 
 #include <stdio.h>
 #include <complex.h>
@@ -15,10 +17,10 @@ int fft_isplanned = 0;
 // Normally it doesn't matter because I can take the abs in the freq. domain
 // But, Gabor filter is a complex filter, so I can't.
 // Thus, I need to get the phase to align before taking the FFT.
-void shift_filter(struct image_s filt){
+void shift_filter(struct gabor_filter_s filt){
 
     // Make a target image
-    struct image_s filt_shift = init_image_empty(filt.height, filt.width);
+    struct gabor_filter_s filt_shift = init_gabor_filter_empty(filt.height, filt.width);
 
     // Find the center pixel
     int center_x = filt.width/2;
@@ -52,13 +54,13 @@ void shift_filter(struct image_s filt){
     for (unsigned int i = 0; i < filt.height*filt.width; i++){
         filt.raw_vals[i] = filt_shift.raw_vals[i];
     }
-    free_image(filt_shift);
+    free_gabor_filter(filt_shift);
 
 }
 
 
 
-void convolve_frequency(struct image_s img_in_raw, struct image_s img_out_raw, struct image_s filt_raw){
+void convolve_frequency(struct image_s img_in_raw, struct image_s img_out_raw, struct gabor_filter_s filt_raw){
 
     // get image dims
     int height = img_in_raw.height;
@@ -67,8 +69,8 @@ void convolve_frequency(struct image_s img_in_raw, struct image_s img_out_raw, s
     // Allocate all needed images
     struct image_s img = init_image_empty(height, width);
     struct image_s img_fft = init_image_empty(height, width);
-    struct image_s filt = init_image_empty(height, width);
-    struct image_s filt_fft = init_image_empty(height, width);
+    struct gabor_filter_s filt = init_gabor_filter_empty(height, width);
+    struct gabor_filter_s filt_fft = init_gabor_filter_empty(height, width);
 
     // Make the FFT plans
     printf("Planning...");
@@ -119,8 +121,8 @@ void convolve_frequency(struct image_s img_in_raw, struct image_s img_out_raw, s
     // Free everything we made
     free_image(img);
     free_image(img_fft);
-    free_image(filt);
-    free_image(filt_fft);
+    free_gabor_filter(filt);
+    free_gabor_filter(filt_fft);
 
 }
 
@@ -134,7 +136,7 @@ void cleanup_fftw(){
 }
 
 // This is as unoptomized as the American Congress
-void convolve_spatial(struct image_s img_in, struct image_s img_out, struct image_s filt){
+void convolve_spatial(struct image_s img_in, struct image_s img_out, struct gabor_filter_s filt){
 
     // Find the center pixel
     int center_x = filt.width/2;

@@ -68,13 +68,129 @@ struct gabor_filter_bank_s init_gabor_filter_bank_default(const unsigned int hei
 
 
 
-void free_gabor_filter_bank(struct gabor_filter_bank_s bank){
 
-    free(bank.angles);
-    free(bank.freqs);
-    free(bank.sigmas);
-    bank.height = 0;
-    bank.width = 0;
+struct gabor_responses_s init_gabor_responses_empty(const unsigned int height, const unsigned int width, const unsigned int num_filters){
+
+    struct gabor_responses_s resps;
+    resps.num_channels = num_filters;
+
+    resps.channels = (struct image_s*)malloc(num_filters*sizeof(struct image_s));
+        if (resps.channels == NULL){
+            fprintf(stderr, "Malloc failed\n");
+            exit(EXIT_FAILURE);
+        }
+
+    for (unsigned int i = 0; i < num_filters; i++){
+        resps.channels[i] = init_image_empty(height, width);
+    }
+
+    return resps;
+
+}
+
+
+
+
+
+
+struct gabor_responses_s apply_gabor_filter_bank(struct image_s img, struct gabor_filter_bank_s bank){
+
+    struct gabor_responses_s resps;
+
+    resps = init_gabor_responses_empty(bank.height, bank.width, bank.num_filters);
+
+
+    for (unsigned int i = 0; i < bank.num_filters; i++){
+
+        struct gabor_filter_s filt = init_gabor_filter_from_bank(bank, i);
+
+        convolve_frequency(img, resps.channels[i], filt);
+
+        free_gabor_filter(filt);
+
+    }
+
+    return resps;
+
+}
+
+
+
+
+
+
+struct gabor_filter_s init_gabor_filter_from_params(const double freq, const double angle, const double sigma, const unsigned int filt_height, const unsigned int filt_width){
+
+    struct gabor_filter_s filt;
+
+    // Initialize the filter
+    filt = init_gabor_filter_empty(filt_height, filt_width);
+
+    // Find the center pixel
+    int center_x = filt.width/2;
+    int center_y = filt.height/2;
+
+    // Populate the filter with proper values (http://en.wikipedia.org/wiki/Gabor_filter)
+    for (int i = 0; i < filt.height; i++){
+        for (int j = 0; j < filt.width; j++){
+
+            double x_shift = j - center_x;
+            double y_shift = i - center_y;
+
+            double x = x_shift*cos(angle) + y_shift*sin(angle);
+            double y = y_shift*cos(angle) - x_shift*sin(angle);
+
+            // Build the filter
+            filt.vals[i][j] = pow(freq*sqrt(PI)/(3*sqrt(log(2))),2)*cexp(-1 * (pow(x, 2) + pow(y,2))/(2 * pow(sigma, 2))) * cexp((double complex)I*2*PI*freq*x);
+
+        }
+    }
+
+    return filt;
+
+}
+
+
+
+
+
+
+struct gabor_filter_s init_gabor_filter_from_bank(struct gabor_filter_bank_s bank, const unsigned int filter_num){
+
+    return init_gabor_filter_from_params(bank.freqs[filter_num], bank.angles[filter_num], bank.sigmas[filter_num], bank.height, bank.width);
+
+}
+
+
+
+
+
+struct gabor_filter_s init_gabor_filter_empty(const unsigned int height, const unsigned int width){
+
+    struct gabor_filter_s filt;
+
+    filt.width = width;
+    filt.height = height;
+
+
+    // Allocate the filter array
+    filt.raw_vals = (double complex*)fftw_malloc(width*height*sizeof(double complex));
+    if (filt.raw_vals == NULL){
+        fprintf(stderr, "Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Make an array of pointers into each row for 2d indexing
+    filt.vals = (double complex**)malloc(height*sizeof(double complex*));
+    if (filt.vals == NULL){
+        fprintf(stderr, "Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
+    for (unsigned int i = 0; i < height; i++){
+        filt.vals[i] = filt.raw_vals + filt.width*i;
+    }
+
+    return filt;
 
 }
 
@@ -138,50 +254,18 @@ void disp_gabor_filter_bank(struct gabor_filter_bank_s bank){
 
 
 
-struct gabor_responses_s init_gabor_responses_empty(const unsigned int height, const unsigned int width, const unsigned int num_filters){
 
-    struct gabor_responses_s resps;
-    resps.num_channels = num_filters;
+void free_gabor_filter_bank(struct gabor_filter_bank_s bank){
 
-    resps.channels = (struct image_s*)malloc(num_filters*sizeof(struct image_s));
-        if (resps.channels == NULL){
-            fprintf(stderr, "Malloc failed\n");
-            exit(EXIT_FAILURE);
-        }
-
-    for (unsigned int i = 0; i < num_filters; i++){
-        resps.channels[i] = init_image_empty(height, width);
-    }
-
-    return resps;
+    free(bank.angles);
+    free(bank.freqs);
+    free(bank.sigmas);
+    bank.height = 0;
+    bank.width = 0;
 
 }
 
 
-
-
-
-
-struct gabor_responses_s apply_gabor_filter_bank(struct image_s img, struct gabor_filter_bank_s bank){
-
-    struct gabor_responses_s resps;
-
-    resps = init_gabor_responses_empty(bank.height, bank.width, bank.num_filters);
-
-
-    for (unsigned int i = 0; i < bank.num_filters; i++){
-
-        struct gabor_filter_s filt = init_gabor_filter_from_bank(bank, i);
-
-        convolve_frequency(img, resps.channels[i], filt);
-
-        free_gabor_filter(filt);
-
-    }
-
-    return resps;
-
-}
 
 
 
@@ -203,56 +287,6 @@ void free_gabor_responses(struct gabor_responses_s resps){
 
 
 
-struct gabor_filter_s init_gabor_filter_from_params(const double freq, const double angle, const double sigma, const unsigned int filt_height, const unsigned int filt_width){
-
-    struct gabor_filter_s filt;
-
-    // Initialize the filter
-    filt = init_gabor_filter_empty(filt_height, filt_width);
-
-    // Find the center pixel
-    int center_x = filt.width/2;
-    int center_y = filt.height/2;
-
-    // Populate the filter with proper values (http://en.wikipedia.org/wiki/Gabor_filter)
-    for (int i = 0; i < filt.height; i++){
-        for (int j = 0; j < filt.width; j++){
-
-            double x_shift = j - center_x;
-            double y_shift = i - center_y;
-
-            double x = x_shift*cos(angle) + y_shift*sin(angle);
-            double y = y_shift*cos(angle) - x_shift*sin(angle);
-
-            // Build the filter
-            filt.vals[i][j] = pow(freq*sqrt(PI)/(3*sqrt(log(2))),2)*cexp(-1 * (pow(x, 2) + pow(y,2))/(2 * pow(sigma, 2))) * cexp((double complex)I*2*PI*freq*x);
-
-        }
-    }
-
-    return filt;
-
-}
-
-
-
-
-
-
-
-struct gabor_filter_s init_gabor_filter_from_bank(struct gabor_filter_bank_s bank, const unsigned int filter_num){
-
-    return init_gabor_filter_from_params(bank.freqs[filter_num], bank.angles[filter_num], bank.sigmas[filter_num], bank.height, bank.width);
-
-}
-
-
-
-
-
-
-
-
 void free_gabor_filter(struct gabor_filter_s filt){
 
     fftw_free(filt.raw_vals);
@@ -264,37 +298,6 @@ void free_gabor_filter(struct gabor_filter_s filt){
 
 
 
-
-
-
-struct gabor_filter_s init_gabor_filter_empty(const unsigned int height, const unsigned int width){
-
-    struct gabor_filter_s filt;
-
-    filt.width = width;
-    filt.height = height;
-
-
-    // Allocate the filter array
-    filt.raw_vals = (double complex*)fftw_malloc(width*height*sizeof(double complex));
-    if (filt.raw_vals == NULL){
-        fprintf(stderr, "Malloc failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    // Make an array of pointers into each row for 2d indexing
-    filt.vals = (double complex**)malloc(height*sizeof(double complex*));
-    if (filt.vals == NULL){
-        fprintf(stderr, "Malloc failed\n");
-        exit(EXIT_FAILURE);
-    }
-    for (unsigned int i = 0; i < height; i++){
-        filt.vals[i] = filt.raw_vals + filt.width*i;
-    }
-
-    return filt;
-
-}
 
 
 

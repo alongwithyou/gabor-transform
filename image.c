@@ -10,7 +10,7 @@
 
 #define PI 3.1415926535897932384
 
-struct image_s init_image_path(const char* const filepath){
+struct image_s init_image_from_path(const char* const filepath){
 
     // Define structures for reading the image
     struct image_s img;

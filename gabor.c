@@ -1,11 +1,13 @@
 #include "gabor.h"
 #include "convolve.h"
+#include "filter.h"
+#include "image.h"
 
 #include <FreeImage.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <fftw3.h>
 #include <complex.h>
+#include <fftw3.h>
 #include <math.h>
 
 #define PI 3.1415926535897932384
@@ -102,11 +104,11 @@ struct gabor_responses_s apply_gabor_filter_bank(struct image_s img, struct gabo
 
     for (unsigned int i = 0; i < bank.num_filters; i++){
 
-        struct gabor_filter_s filt = init_gabor_filter_from_bank(bank, i);
+        struct filter_s filt = init_gabor_filter_from_bank(bank, i);
 
         convolve_frequency(img, resps.channels[i], filt);
 
-        free_gabor_filter(filt);
+        free_filter(filt);
 
     }
 
@@ -119,12 +121,12 @@ struct gabor_responses_s apply_gabor_filter_bank(struct image_s img, struct gabo
 
 
 
-struct gabor_filter_s init_gabor_filter_from_params(const double freq, const double angle, const double sigma, const unsigned int filt_height, const unsigned int filt_width){
+struct filter_s init_gabor_filter_from_params(const double freq, const double angle, const double sigma, const unsigned int filt_height, const unsigned int filt_width){
 
-    struct gabor_filter_s filt;
+    struct filter_s filt;
 
     // Initialize the filter
-    filt = init_gabor_filter_empty(filt_height, filt_width);
+    filt = init_filter_empty(filt_height, filt_width);
 
     // Find the center pixel
     int center_x = filt.width/2;
@@ -155,44 +157,13 @@ struct gabor_filter_s init_gabor_filter_from_params(const double freq, const dou
 
 
 
-struct gabor_filter_s init_gabor_filter_from_bank(struct gabor_filter_bank_s bank, const unsigned int filter_num){
+struct filter_s init_gabor_filter_from_bank(struct gabor_filter_bank_s bank, const unsigned int filter_num){
 
     return init_gabor_filter_from_params(bank.freqs[filter_num], bank.angles[filter_num], bank.sigmas[filter_num], bank.height, bank.width);
 
 }
 
 
-
-
-
-struct gabor_filter_s init_gabor_filter_empty(const unsigned int height, const unsigned int width){
-
-    struct gabor_filter_s filt;
-
-    filt.width = width;
-    filt.height = height;
-
-
-    // Allocate the filter array
-    filt.raw_vals = (double complex*)fftw_malloc(width*height*sizeof(double complex));
-    if (filt.raw_vals == NULL){
-        fprintf(stderr, "Malloc failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    // Make an array of pointers into each row for 2d indexing
-    filt.vals = (double complex**)malloc(height*sizeof(double complex*));
-    if (filt.vals == NULL){
-        fprintf(stderr, "Malloc failed\n");
-        exit(EXIT_FAILURE);
-    }
-    for (unsigned int i = 0; i < height; i++){
-        filt.vals[i] = filt.raw_vals + filt.width*i;
-    }
-
-    return filt;
-
-}
 
 
 
@@ -229,9 +200,6 @@ struct image_s reconstruct_image_from_responses(struct gabor_responses_s resps){
 
 }
 
-
-
-
 void disp_gabor_filter_bank(struct gabor_filter_bank_s bank){
 
     // get image dims
@@ -240,15 +208,15 @@ void disp_gabor_filter_bank(struct gabor_filter_bank_s bank){
 
     // Allocate all needed images
     struct image_s img = init_image_empty(height, width);
-    struct gabor_filter_s filt = init_gabor_filter_empty(height, width);
-    struct gabor_filter_s filt_fft = init_gabor_filter_empty(height, width);
+    struct filter_s filt = init_filter_empty(height, width);
+    struct filter_s filt_fft = init_filter_empty(height, width);
 
     fftw_plan filt_plan = fftw_plan_dft_2d(height, width, filt.raw_vals, filt_fft.raw_vals, FFTW_FORWARD, FFTW_MEASURE);
 
     for (unsigned int f = 0; f < 16; f++){
 
         // initialize a temporary filter
-        struct gabor_filter_s temp_filt = init_gabor_filter_from_params(bank.freqs[f], bank.angles[f], bank.sigmas[f], height, width);
+        struct filter_s temp_filt = init_gabor_filter_from_params(bank.freqs[f], bank.angles[f], bank.sigmas[f], height, width);
 
         // Load it in
         for (unsigned int i = 0; i < width*height; i++){
@@ -267,17 +235,17 @@ void disp_gabor_filter_bank(struct gabor_filter_bank_s bank){
         }
 
         // Free the temporary filter
-        free_gabor_filter(temp_filt);
+        free_filter(temp_filt);
 
     }
 
     // I am SO SORRY for writing this line of code.
-    shift_filter(*((struct gabor_filter_s*)&img));
+    shift_filter(*((struct filter_s*)&img));
     save_image(img, "coverage");
 
     free_image(img);
-    free_gabor_filter(filt);
-    free_gabor_filter(filt_fft);
+    free_filter(filt);
+    free_filter(filt_fft);
 
 }
 
@@ -317,17 +285,6 @@ void free_gabor_responses(struct gabor_responses_s resps){
 
 
 
-
-
-
-void free_gabor_filter(struct gabor_filter_s filt){
-
-    fftw_free(filt.raw_vals);
-    free(filt.vals);
-    filt.raw_vals = NULL;
-    filt.vals = NULL;
-
-}
 
 
 

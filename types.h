@@ -10,7 +10,7 @@ struct image_s{
     unsigned int height;
 };
 
-struct gabor_filter_s{
+struct filter_s{
     double complex* raw_vals;
     double complex** vals;
     unsigned int width;

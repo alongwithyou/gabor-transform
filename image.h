@@ -5,7 +5,7 @@
 
 struct image_s init_image_empty(const unsigned int height, const unsigned int width);
 
-struct image_s init_image_path(const char* const filepath);
+struct image_s init_image_from_path(const char* const filepath);
 
 void free_image(struct image_s img);
 

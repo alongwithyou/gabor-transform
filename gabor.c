@@ -196,6 +196,39 @@ struct gabor_filter_s init_gabor_filter_empty(const unsigned int height, const u
 
 
 
+struct image_s reconstruct_image_from_responses(struct gabor_responses_s resps){
+
+    struct image_s img;
+
+    unsigned int height = resps.channels[0].height;
+    unsigned int width = resps.channels[0].width;
+
+
+    img = init_image_empty(height, width);
+
+    // Zero out the image
+    for (unsigned int i = 0; i < height; i++){
+        for (unsigned int j = 0; j < width; j++){
+            img.vals[j][i] = 0;
+        }
+    }
+
+
+    // Sum each channel into the image
+    for (unsigned int c = 0; c < resps.num_channels; c++){
+
+        for (unsigned int i = 0; i < height; i++){
+            for (unsigned int j = 0; j < width; j++){
+                img.vals[j][i] += creal(resps.channels[c].vals[j][i]);
+            }
+        }
+
+    }
+
+    return img;
+
+}
+
 
 
 

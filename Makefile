@@ -28,11 +28,11 @@ OPTIMIZE = -O0
 # -Wdouble-promotion : Makes implicit promotion to a double a warning
 
 
-CFLAGS   = $(OPTIMIZE) -std=c99 -pedantic -Wall -Wdouble-promotion
+CFLAGS   = $(OPTIMIZE) -g -std=c99 -pedantic -Wall -Wdouble-promotion
 
 LINKER   = $(CC) -o
 # linking flags here
-LFLAGS   = -std=c99 -pedantic -Wall -Wdouble-promotion
+LFLAGS   = -g -std=c99 -pedantic -Wall -Wdouble-promotion
 LIBS     = -lm -lfreeimage -lfftw3
 
 # Change these to set the proper directories where each files shoould be

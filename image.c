@@ -63,7 +63,7 @@ struct image_s init_image_path(const char* const filepath){
 
 
 
-struct image_s init_image_empty(const unsigned int width, const unsigned int height){
+struct image_s init_image_empty(const unsigned int height, const unsigned int width){
 
     struct image_s img;
 

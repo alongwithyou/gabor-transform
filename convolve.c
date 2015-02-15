@@ -11,9 +11,7 @@ fftw_plan filt_plan;
 fftw_plan img_out_plan;
 unsigned int fft_isplanned = 0;
 
-
-
-// FFTW uses the image origin (0,0) as the FFT origin.
+ FFTW uses the image origin (0,0) as the FFT origin.
 // Normally it doesn't matter because I can take the abs in the freq. domain
 // But, Gabor filter is a complex filter, so I can't.
 // Thus, I need to get the phase to align before taking the FFT.

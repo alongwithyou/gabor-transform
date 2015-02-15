@@ -21,14 +21,14 @@ struct gabor_filter_bank_s{
     double* angles;
     double* sigmas;
     double* freqs;
-    int height;
-    int width;
-    int num_filters;
+    unsigned int height;
+    unsigned int width;
+    unsigned int num_filters;
 };
 
 struct gabor_responses_s{
     struct image_s* channels;
-    int num_channels;
+    unsigned int num_channels;
 };
 
 

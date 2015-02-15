@@ -11,9 +11,9 @@
 #define PI 3.1415926535897932384
 
 
-struct gabor_filter_bank_s init_gabor_filter_bank_default(int height, int width){
+struct gabor_filter_bank_s init_gabor_filter_bank_default(const unsigned int height, const unsigned int width){
 
-    const int num_filters = 16;
+    const unsigned int num_filters = 16;
 
     struct gabor_filter_bank_s bank;
 
@@ -22,7 +22,7 @@ struct gabor_filter_bank_s init_gabor_filter_bank_default(int height, int width)
     bank.num_filters = num_filters;
 
     // Allocate the arrays within the filter bank
-    for (int i = 0; i < num_filters; i++){
+    for (unsigned int i = 0; i < num_filters; i++){
         bank.angles = (double*)malloc(num_filters*sizeof(double));
         if (bank.angles == NULL){
             fprintf(stderr, "Malloc failed\n");
@@ -41,9 +41,9 @@ struct gabor_filter_bank_s init_gabor_filter_bank_default(int height, int width)
     }
 
     // Populate values
-    int i = 0;
-    for (int a = 0; a < 4; a++){
-        for (int f = 0; f < 4; f++){
+    unsigned int i = 0;
+    for (unsigned int a = 0; a < 4; a++){
+        for (unsigned int f = 0; f < 4; f++){
 
             // Distributed on pi/4 angles
             bank.angles[i] = (PI/4.0)*a;
@@ -86,8 +86,8 @@ void free_gabor_filter_bank(struct gabor_filter_bank_s bank){
 void disp_gabor_filter_bank(struct gabor_filter_bank_s bank){
 
     // get image dims
-    int height = 512;
-    int width = 512;
+    const unsigned int height = 512;
+    const unsigned int width = 512;
 
     // Allocate all needed images
     struct image_s img = init_image_empty(height, width);
@@ -96,7 +96,7 @@ void disp_gabor_filter_bank(struct gabor_filter_bank_s bank){
 
     fftw_plan filt_plan = fftw_plan_dft_2d(height, width, filt.raw_vals, filt_fft.raw_vals, FFTW_FORWARD, FFTW_MEASURE);
 
-    for (int f = 0; f < 16; f++){
+    for (unsigned int f = 0; f < 16; f++){
 
         // initialize a temporary filter
         struct gabor_filter_s temp_filt = init_gabor_filter_from_params(bank.freqs[f], bank.angles[f], bank.sigmas[f], height, width);
@@ -138,7 +138,7 @@ void disp_gabor_filter_bank(struct gabor_filter_bank_s bank){
 
 
 
-struct gabor_responses_s init_gabor_responses_empty(int height, int width, int num_filters){
+struct gabor_responses_s init_gabor_responses_empty(const unsigned int height, const unsigned int width, const unsigned int num_filters){
 
     struct gabor_responses_s resps;
     resps.num_channels = num_filters;
@@ -149,7 +149,7 @@ struct gabor_responses_s init_gabor_responses_empty(int height, int width, int n
             exit(EXIT_FAILURE);
         }
 
-    for (int i = 0; i < num_filters; i++){
+    for (unsigned int i = 0; i < num_filters; i++){
         resps.channels[i] = init_image_empty(height, width);
     }
 
@@ -169,7 +169,7 @@ struct gabor_responses_s apply_gabor_filter_bank(struct image_s img, struct gabo
     resps = init_gabor_responses_empty(bank.height, bank.width, bank.num_filters);
 
 
-    for (int i = 0; i < bank.num_filters; i++){
+    for (unsigned int i = 0; i < bank.num_filters; i++){
 
         struct gabor_filter_s filt = init_gabor_filter_from_bank(bank, i);
 
@@ -203,7 +203,7 @@ void free_gabor_responses(struct gabor_responses_s resps){
 
 
 
-struct gabor_filter_s init_gabor_filter_from_params(double freq, double angle, double sigma, int filt_height, int filt_width){
+struct gabor_filter_s init_gabor_filter_from_params(const double freq, const double angle, const double sigma, const unsigned int filt_height, const unsigned int filt_width){
 
     struct gabor_filter_s filt;
 
@@ -240,7 +240,7 @@ struct gabor_filter_s init_gabor_filter_from_params(double freq, double angle, d
 
 
 
-struct gabor_filter_s init_gabor_filter_from_bank(struct gabor_filter_bank_s bank, int filter_num){
+struct gabor_filter_s init_gabor_filter_from_bank(struct gabor_filter_bank_s bank, const unsigned int filter_num){
 
     return init_gabor_filter_from_params(bank.freqs[filter_num], bank.angles[filter_num], bank.sigmas[filter_num], bank.height, bank.width);
 
@@ -267,7 +267,7 @@ void free_gabor_filter(struct gabor_filter_s filt){
 
 
 
-struct gabor_filter_s init_gabor_filter_empty(int height, int width){
+struct gabor_filter_s init_gabor_filter_empty(const unsigned int height, const unsigned int width){
 
     struct gabor_filter_s filt;
 

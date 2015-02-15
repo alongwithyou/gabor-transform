@@ -9,7 +9,7 @@
 fftw_plan img_in_plan;
 fftw_plan filt_plan;
 fftw_plan img_out_plan;
-int fft_isplanned = 0;
+unsigned int fft_isplanned = 0;
 
 
 
@@ -60,7 +60,7 @@ void shift_filter(struct gabor_filter_s filt){
 
 
 
-void convolve_frequency(struct image_s img_in_raw, struct image_s img_out_raw, struct gabor_filter_s filt_raw){
+void convolve_frequency(const struct image_s img_in_raw, struct image_s img_out_raw, const struct gabor_filter_s filt_raw){
 
     // get image dims
     int height = img_in_raw.height;
@@ -136,7 +136,7 @@ void cleanup_fftw(){
 }
 
 // This is as unoptomized as the American Congress
-void convolve_spatial(struct image_s img_in, struct image_s img_out, struct gabor_filter_s filt){
+void convolve_spatial(const struct image_s img_in, struct image_s img_out, const struct gabor_filter_s filt){
 
     // Find the center pixel
     int center_x = filt.width/2;

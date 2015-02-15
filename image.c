@@ -10,7 +10,7 @@
 
 #define PI 3.1415926535897932384
 
-struct image_s init_image_path(char* filepath){
+struct image_s init_image_path(const char* const filepath){
 
     // Define structures for reading the image
     struct image_s img;
@@ -63,7 +63,7 @@ struct image_s init_image_path(char* filepath){
 
 
 
-struct image_s init_image_empty(unsigned int width, unsigned int height){
+struct image_s init_image_empty(const unsigned int width, const unsigned int height){
 
     struct image_s img;
 
@@ -104,7 +104,7 @@ void free_image(struct image_s img){
 
 
 
-void save_image(struct image_s img, char* prefix){
+void save_image(struct image_s img, const char* const prefix){
 
     // Allocate byte arrays for the four image "channels"
     uint8_t* abs_img;

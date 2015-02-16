@@ -4,6 +4,7 @@
 #include "gabor.h"
 #include "filter.h"
 #include "convolve.h"
+#include "util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -34,7 +35,7 @@ int main(int argc, char* argv[]){
     resps = apply_gabor_filter_bank(img, bank);
 
     // Rebuild the original image from response channels
-    //img_reconstruct = reconstruct_image_from_responses(resps);
+    img_reconstruct = reconstruct_image_from_responses(resps);
     //iterative_reconstruction(resps, bank);
     print_histograms(resps);
 
@@ -42,7 +43,7 @@ int main(int argc, char* argv[]){
     save_image(img_reconstruct, "aaa");
 
     // Free memory
-    //free_image(img_reconstruct);
+    free_image(img_reconstruct);
     free_image(img);
     free_gabor_filter_bank(bank);
     free_gabor_responses(resps);

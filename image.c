@@ -69,10 +69,12 @@ struct image_s init_image_from_path(const char* const filepath){
 
 struct image_s init_image_empty(const unsigned int height, const unsigned int width){
 
+    // Create the structure
     struct image_s img;
 
-    img.width = width;
+    // Set height and width
     img.height = height;
+    img.width = width;
 
     // Allocate the filter array
     img.raw_vals = (double complex*)fftw_malloc(width*height*sizeof(double complex));

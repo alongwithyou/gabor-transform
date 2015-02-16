@@ -6,6 +6,7 @@
 #include "convolve.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <FreeImage.h>
 #include <complex.h>
 #include <fftw3.h>
@@ -15,6 +16,7 @@ int main(int argc, char* argv[]){
 
     // Initialize the image I/O library
     FreeImage_Initialise(FALSE);
+    srand(2);
 
     struct image_s img;
     struct image_s img_reconstruct;
@@ -32,13 +34,15 @@ int main(int argc, char* argv[]){
     resps = apply_gabor_filter_bank(img, bank);
 
     // Rebuild the original image from response channels
-    img_reconstruct = reconstruct_image_from_responses(resps);
+    //img_reconstruct = reconstruct_image_from_responses(resps);
+    //iterative_reconstruction(resps, bank);
+    print_histograms(resps);
 
     // Display the reconstructed image
     save_image(img_reconstruct, "aaa");
 
     // Free memory
-    free_image(img_reconstruct);
+    //free_image(img_reconstruct);
     free_image(img);
     free_gabor_filter_bank(bank);
     free_gabor_responses(resps);

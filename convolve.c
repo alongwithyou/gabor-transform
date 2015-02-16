@@ -7,11 +7,6 @@
 #include <complex.h>
 #include <fftw3.h>
 
-fftw_plan img_in_plan;
-fftw_plan filt_plan;
-fftw_plan img_out_plan;
-unsigned int fft_isplanned = 0;
-
 // FFTW uses the image origin (0,0) as the FFT origin.
 // Normally it doesn't matter because I can take the abs in the freq. domain
 // But, Gabor filter is a complex filter, so I can't.
@@ -74,20 +69,14 @@ void convolve_frequency(const struct image_s img_in_raw, struct image_s img_out_
     // Make the FFT plans
     printf("Planning...");
     fflush(stdout);
-    img_in_plan = fftw_plan_dft_2d(height, width, img.raw_vals, img_fft.raw_vals, FFTW_FORWARD, FFTW_MEASURE);
+    fftw_plan img_in_plan = fftw_plan_dft_2d(height, width, img.raw_vals, img_fft.raw_vals, FFTW_FORWARD, FFTW_MEASURE);
     printf("...");
     fflush(stdout);
-    filt_plan = fftw_plan_dft_2d(height, width, filt.raw_vals, filt_fft.raw_vals, FFTW_FORWARD, FFTW_MEASURE);
+    fftw_plan filt_plan = fftw_plan_dft_2d(height, width, filt.raw_vals, filt_fft.raw_vals, FFTW_FORWARD, FFTW_MEASURE);
     printf("...");
     fflush(stdout);
-    img_out_plan = fftw_plan_dft_2d(height, width, img_fft.raw_vals, img.raw_vals, FFTW_BACKWARD, FFTW_MEASURE);
+    fftw_plan img_out_plan = fftw_plan_dft_2d(height, width, img_fft.raw_vals, img.raw_vals, FFTW_BACKWARD, FFTW_MEASURE);
     printf("done\n");
-    fft_isplanned = 1;
-
-    // Flag the FFT as planned
-    if (~fft_isplanned){
-        fft_isplanned = 1;
-    }
 
     // Copy the image and filter data into the planned arrays
     for (unsigned int i = 0; i < width*height; i++){
@@ -123,15 +112,10 @@ void convolve_frequency(const struct image_s img_in_raw, struct image_s img_out_
     free_filter(filt);
     free_filter(filt_fft);
 
-}
+    fftw_destroy_plan(img_in_plan);
+    fftw_destroy_plan(filt_plan);
+    fftw_destroy_plan(img_out_plan);
 
-void cleanup_fftw(){
-    if (fft_isplanned){
-        fftw_destroy_plan(img_in_plan);
-        fftw_destroy_plan(filt_plan);
-        fftw_destroy_plan(img_out_plan);
-        fft_isplanned = 0;
-    }
 }
 
 // This is as unoptomized as the American Congress

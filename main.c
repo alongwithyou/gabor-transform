@@ -7,6 +7,8 @@
 
 #include <stdio.h>
 #include <FreeImage.h>
+#include <complex.h>
+#include <fftw3.h>
 
 
 int main(int argc, char* argv[]){
@@ -36,13 +38,12 @@ int main(int argc, char* argv[]){
     save_image(img_reconstruct, "aaa");
 
     // Free memory
-    free_image(img);
     free_image(img_reconstruct);
+    free_image(img);
     free_gabor_filter_bank(bank);
     free_gabor_responses(resps);
-
     // Cleanup
-    cleanup_fftw();
+    fftw_cleanup();
     FreeImage_DeInitialise();
 
     return 0;

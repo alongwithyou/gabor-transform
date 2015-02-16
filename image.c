@@ -15,6 +15,8 @@ struct image_s init_image_from_path(const char* const filepath){
     // Define structures for reading the image
     struct image_s img;
     FIBITMAP* freeimg;
+    FIBITMAP* grayimg;
+    FIBITMAP* compimg;
 
     // Find the image format from file
     FREE_IMAGE_FORMAT fif = FIF_UNKNOWN;
@@ -41,15 +43,15 @@ struct image_s init_image_from_path(const char* const filepath){
     }
 
     // Convert the image to grayscale, double complex.
-    freeimg = FreeImage_ConvertToGreyscale(freeimg);
-    freeimg = FreeImage_ConvertToType(freeimg, FIT_COMPLEX, TRUE);
+    grayimg = FreeImage_ConvertToGreyscale(freeimg);
+    compimg = FreeImage_ConvertToType(freeimg, FIT_COMPLEX, TRUE);
 
     // Initialize the image structure
-    img = init_image_empty(FreeImage_GetWidth(freeimg), FreeImage_GetHeight(freeimg));
+    img = init_image_empty(FreeImage_GetWidth(compimg), FreeImage_GetHeight(compimg));
 
     // Copy values into new image array
     for (unsigned int i = 0; i < img.height; i++){
-        double complex* line = (double complex*)FreeImage_GetScanLine(freeimg, i);
+        double complex* line = (double complex*)FreeImage_GetScanLine(compimg, i);
         for (unsigned int j = 0; j < img.width; j++){
             img.vals[i][j] = line[j];
         }
@@ -57,6 +59,8 @@ struct image_s init_image_from_path(const char* const filepath){
 
     // Free the image
     FreeImage_Unload(freeimg);
+    FreeImage_Unload(grayimg);
+    FreeImage_Unload(compimg);
 
     return img;
 }

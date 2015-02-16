@@ -24,22 +24,20 @@ struct gabor_filter_bank_s init_gabor_filter_bank_default(const unsigned int hei
     bank.num_filters = num_filters;
 
     // Allocate the arrays within the filter bank
-    for (unsigned int i = 0; i < num_filters; i++){
-        bank.angles = (double*)malloc(num_filters*sizeof(double));
-        if (bank.angles == NULL){
-            fprintf(stderr, "Malloc failed\n");
-            exit(EXIT_FAILURE);
-        }
-        bank.sigmas = (double*)malloc(num_filters*sizeof(double));
-        if (bank.sigmas == NULL){
-            fprintf(stderr, "Malloc failed\n");
-            exit(EXIT_FAILURE);
-        }
-        bank.freqs = (double*)malloc(num_filters*sizeof(double));
-        if (bank.freqs == NULL){
-            fprintf(stderr, "Malloc failed\n");
-            exit(EXIT_FAILURE);
-        }
+    bank.angles = (double*)malloc(num_filters*sizeof(double));
+    if (bank.angles == NULL){
+        fprintf(stderr, "Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
+    bank.sigmas = (double*)malloc(num_filters*sizeof(double));
+    if (bank.sigmas == NULL){
+        fprintf(stderr, "Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
+    bank.freqs = (double*)malloc(num_filters*sizeof(double));
+    if (bank.freqs == NULL){
+        fprintf(stderr, "Malloc failed\n");
+        exit(EXIT_FAILURE);
     }
 
     // Populate values
@@ -200,6 +198,29 @@ struct image_s reconstruct_image_from_responses(struct gabor_responses_s resps){
 
 }
 
+
+
+
+
+
+
+
+void iterative_reconstruction(struct gabor_responses_s resps){
+
+
+
+
+
+
+
+}
+
+
+
+
+
+
+
 void disp_gabor_filter_bank(struct gabor_filter_bank_s bank){
 
     // get image dims
@@ -261,6 +282,7 @@ void free_gabor_filter_bank(struct gabor_filter_bank_s bank){
     free(bank.angles);
     free(bank.freqs);
     free(bank.sigmas);
+
     bank.height = 0;
     bank.width = 0;
 

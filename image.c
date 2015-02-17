@@ -24,6 +24,7 @@ struct image_s init_image_from_path(const char* const filepath){
 
     // If it failed, find it from the filename
     if(fif == FIF_UNKNOWN) {
+        printf("falling back to filename for image format identification");
         fif = FreeImage_GetFIFFromFilename(filepath);
     }
 
@@ -44,10 +45,10 @@ struct image_s init_image_from_path(const char* const filepath){
 
     // Convert the image to grayscale, double complex.
     grayimg = FreeImage_ConvertToGreyscale(freeimg);
-    compimg = FreeImage_ConvertToType(freeimg, FIT_COMPLEX, TRUE);
+    compimg = FreeImage_ConvertToType(grayimg, FIT_COMPLEX, TRUE);
 
     // Initialize the image structure
-    img = init_image_empty(FreeImage_GetWidth(compimg), FreeImage_GetHeight(compimg));
+    img = init_image_empty(FreeImage_GetWidth(freeimg), FreeImage_GetHeight(freeimg));
 
     // Copy values into new image array
     for (unsigned int i = 0; i < img.height; i++){

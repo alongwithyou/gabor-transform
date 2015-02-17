@@ -25,8 +25,8 @@ int main(int argc, char* argv[]){
     struct gabor_responses_s resps;
 
     // Read in the image
-    //img = init_image_from_path("/home/glenn/documents/schoolwork/grad/thesis/imgs/deadleaves_2048.tif");
-    img = init_image_from_path("/home/glenn/documents/schoolwork/grad/thesis/imgs/lena_bw.tif");
+    img = init_image_from_path("/home/glenn/documents/schoolwork/grad/thesis/imgs/deadleaves_2048.tif");
+    //img = init_image_from_path("/home/glenn/documents/schoolwork/grad/thesis/imgs/lena_bw.tif");
 
     // Initialize the filter bank
     bank = init_gabor_filter_bank_default(img.height, img.width);

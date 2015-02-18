@@ -94,6 +94,14 @@ struct image_s init_image_empty(const unsigned int height, const unsigned int wi
         img.vals[i] = img.raw_vals + img.width*i;
     }
 
+
+    // Zero the image!!!
+    for (unsigned int i = 0; i < height*width; i++){
+
+        img.raw_vals[i] = 0;
+
+    }
+
     return img;
 
 }

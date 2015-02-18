@@ -1,4 +1,3 @@
-
 #include "types.h"
 #include "image.h"
 #include "gabor.h"
@@ -12,7 +11,6 @@
 #include <complex.h>
 #include <fftw3.h>
 
-
 int main(int argc, char* argv[]){
 
     // Initialize the image I/O library
@@ -25,8 +23,8 @@ int main(int argc, char* argv[]){
     struct gabor_responses_s resps;
 
     // Read in the image
-    img = init_image_from_path("/home/glenn/documents/schoolwork/grad/thesis/imgs/deadleaves_2048.tif");
-    //img = init_image_from_path("/home/glenn/documents/schoolwork/grad/thesis/imgs/lena_bw.tif");
+    //img = init_image_from_path("/home/glenn/documents/schoolwork/grad/thesis/imgs/deadleaves_2048.tif");
+    img = init_image_from_path("/home/glenn/documents/schoolwork/grad/thesis/imgs/lena_bw.tif");
 
     // Initialize the filter bank
     bank = init_gabor_filter_bank_default(img.height, img.width);
@@ -37,7 +35,6 @@ int main(int argc, char* argv[]){
     // Rebuild the original image from response channels
     img_reconstruct = reconstruct_image_from_responses(resps);
     //iterative_reconstruction(resps, bank);
-    print_histograms(resps);
 
     // Display the reconstructed image
     save_image(img_reconstruct, "aaa");

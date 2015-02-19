@@ -9,6 +9,8 @@ struct image_s init_image_from_path(const char* const filepath);
 
 void free_image(struct image_s img);
 
-void save_image(struct image_s img, const char* const prefix);
+void save_image_scale(struct image_s img, const char* const prefix);
+
+void save_image_noscale(struct image_s img, const char* const prefix);
 
 #endif

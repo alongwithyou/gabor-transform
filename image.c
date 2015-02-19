@@ -119,7 +119,7 @@ void free_image(struct image_s img){
 
 
 
-void save_image(struct image_s img, const char* const prefix){
+void save_image_scale(struct image_s img, const char* const prefix){
 
     // Allocate byte arrays for the four image "channels"
     uint8_t* abs_img;
@@ -230,4 +230,38 @@ void save_image(struct image_s img, const char* const prefix){
 
 }
 
+
+
+
+void save_image_noscale(struct image_s img, const char* const prefix){
+
+    // Allocate byte arrays for the image "channel"
+    uint8_t* abs_img;
+
+    // Allocate the magnitude array
+    abs_img = (uint8_t*)malloc(img.width*img.height*sizeof(uint8_t));
+    if (abs_img == NULL){
+        fprintf(stderr, "Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Copy the real and imaginary values in, scaling to fit in 8 bits
+    for (unsigned int i = 0; i < (img.height*img.width); i++){
+        abs_img[i] = (cabs(img.raw_vals[i]));
+    }
+
+    // Create the FreeImages for writing
+    FIBITMAP *abs_freeimg = FreeImage_ConvertFromRawBits(abs_img, img.width, img.height, img.width, 8, 0, 0, 0, FALSE);
+
+    // Write the files
+    char pathname[200];
+    snprintf(pathname, 200, "%s_abs.png", prefix);
+    FreeImage_Save(FIF_PNG, abs_freeimg, pathname, 0);
+
+    // Free memory
+    FreeImage_Unload(abs_freeimg);
+    free(abs_img);
+    abs_img = NULL;
+
+}
 

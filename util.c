@@ -23,7 +23,7 @@ void iterative_reconstruction(struct gabor_responses_s resps, struct gabor_filte
 
     struct image_s img = init_image_empty(height, width);
 
-    save_image_scale(img, "bbb");
+    save_image_autoscale(img, "bbb");
 
     // Compute the histogram of the responses
     unsigned int num_bins = 100;
@@ -92,7 +92,7 @@ void iterative_reconstruction(struct gabor_responses_s resps, struct gabor_filte
         if (!(n % 10)){
             char imname[100];
             snprintf(imname, 100, "/home/glenn/gif/%05d_frame", n);
-            save_image_scale(img, imname);
+            save_image_autoscale(img, imname);
         }
 
     }

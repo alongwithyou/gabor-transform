@@ -119,149 +119,62 @@ void free_image(struct image_s img){
 
 
 
-void save_image_scale(struct image_s img, const char* const prefix){
 
-    // Allocate byte arrays for the four image "channels"
-    uint8_t* abs_img;
-    uint8_t* arg_img;
-    uint8_t* real_img;
-    uint8_t* imag_img;
+
+void save_image_scale(struct image_s img, const char* const prefix, double min_val, double max_val){
+
+    uint8_t* out_img;
 
     // Allocate the real array
-    real_img = (uint8_t*)malloc(img.width*img.height*sizeof(uint8_t));
-    if (real_img == NULL){
+    out_img = (uint8_t*)malloc(img.width*img.height*sizeof(uint8_t));
+    if (out_img == NULL){
         fprintf(stderr, "Malloc failed\n");
         exit(EXIT_FAILURE);
-    }
-    // Allocate the imaginary array
-    imag_img = (uint8_t*)malloc(img.width*img.height*sizeof(uint8_t));
-    if (imag_img == NULL){
-        fprintf(stderr, "Malloc failed\n");
-        exit(EXIT_FAILURE);
-    }
-    // Allocate the magnitude array
-    abs_img = (uint8_t*)malloc(img.width*img.height*sizeof(uint8_t));
-    if (abs_img == NULL){
-        fprintf(stderr, "Malloc failed\n");
-        exit(EXIT_FAILURE);
-    }
-    // Allocate the argument array
-    arg_img = (uint8_t*)malloc(img.width*img.height*sizeof(uint8_t));
-    if (arg_img == NULL){
-        fprintf(stderr, "Malloc failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    double abs_min = DBL_MAX;
-    double abs_max = DBL_MIN;
-    double arg_min = DBL_MAX;
-    double arg_max = DBL_MIN;
-    double real_min = DBL_MAX;
-    double real_max = DBL_MIN;
-    double imag_min = DBL_MAX;
-    double imag_max = DBL_MIN;
-
-    // Find the minimum and maximum of each component
-    for (unsigned int i = 0; i < (img.height*img.width); i++){
-        if (cabs(img.raw_vals[i]) < abs_min){
-            abs_min = cabs(img.raw_vals[i]);
-        }
-        if (cabs(img.raw_vals[i]) > abs_max){
-            abs_max = cabs(img.raw_vals[i]);
-        }
-        if (carg(img.raw_vals[i]) < arg_min){
-            arg_min = carg(img.raw_vals[i]);
-        }
-        if (carg(img.raw_vals[i]) > arg_max){
-            arg_max = carg(img.raw_vals[i]);
-        }
-        if (creal(img.raw_vals[i]) < real_min){
-            real_min = creal(img.raw_vals[i]);
-        }
-        if (creal(img.raw_vals[i]) > real_max){
-            real_max = creal(img.raw_vals[i]);
-        }
-        if (cimag(img.raw_vals[i]) < imag_min){
-            imag_min = cimag(img.raw_vals[i]);
-        }
-        if (cimag(img.raw_vals[i]) > imag_max){
-            imag_max = cimag(img.raw_vals[i]);
-        }
     }
 
     // Copy the real and imaginary values in, scaling to fit in 8 bits
     for (unsigned int i = 0; i < (img.height*img.width); i++){
-        abs_img[i] = ((cabs(img.raw_vals[i]) - abs_min) / (abs_max - abs_min))*255;
-        arg_img[i] = ((carg(img.raw_vals[i]) - arg_min) / (arg_max - arg_min))*255;
-        real_img[i] = ((creal(img.raw_vals[i]) - real_min) / (real_max - real_min))*255;
-        imag_img[i] = ((cimag(img.raw_vals[i]) - imag_min) / (imag_max - imag_min))*255;
+        out_img[i] = ((cabs(img.raw_vals[i]) - min_val) / (max_val - min_val))*255;
     }
 
-    // Create the FreeImages for writing
-    FIBITMAP *abs_freeimg = FreeImage_ConvertFromRawBits(abs_img, img.width, img.height, img.width, 8, 0, 0, 0, FALSE);
-    FIBITMAP *arg_freeimg = FreeImage_ConvertFromRawBits(arg_img, img.width, img.height, img.width, 8, 0, 0, 0, FALSE);
-    FIBITMAP *real_freeimg = FreeImage_ConvertFromRawBits(real_img, img.width, img.height, img.width, 8, 0, 0, 0, FALSE);
-    FIBITMAP *imag_freeimg = FreeImage_ConvertFromRawBits(imag_img, img.width, img.height, img.width, 8, 0, 0, 0, FALSE);
+    // Create the FreeImage for writing
+    FIBITMAP *out_freeimg = FreeImage_ConvertFromRawBits(out_img, img.width, img.height, img.width, 8, 0, 0, 0, FALSE);
 
     // Write the files
     char pathname[200];
-    snprintf(pathname, 200, "%s_abs.png", prefix);
-    FreeImage_Save(FIF_PNG, abs_freeimg, pathname, 0);
-    snprintf(pathname, 200, "%s_arg.png", prefix);
-    FreeImage_Save(FIF_PNG, arg_freeimg, pathname, 0);
-    snprintf(pathname, 200, "%s_real.png", prefix);
-    FreeImage_Save(FIF_PNG, real_freeimg, pathname, 0);
-    snprintf(pathname, 200, "%s_imag.png", prefix);
-    FreeImage_Save(FIF_PNG, imag_freeimg, pathname, 0);
+    snprintf(pathname, 200, "%s.png", prefix);
+    FreeImage_Save(FIF_PNG, out_freeimg, pathname, 0);
 
-    // Free memory
-    FreeImage_Unload(abs_freeimg);
-    FreeImage_Unload(arg_freeimg);
-    FreeImage_Unload(real_freeimg);
-    FreeImage_Unload(imag_freeimg);
-    free(abs_img);
-    free(arg_img);
-    free(real_img);
-    free(imag_img);
-    abs_img = NULL;
-    arg_img = NULL;
-    real_img = NULL;
-    imag_img = NULL;
-
+    FreeImage_Unload(out_freeimg);
+    free(out_img);
+    out_img = NULL;
 }
-
-
 
 
 void save_image_noscale(struct image_s img, const char* const prefix){
 
-    // Allocate byte arrays for the image "channel"
-    uint8_t* abs_img;
-
-    // Allocate the magnitude array
-    abs_img = (uint8_t*)malloc(img.width*img.height*sizeof(uint8_t));
-    if (abs_img == NULL){
-        fprintf(stderr, "Malloc failed\n");
-        exit(EXIT_FAILURE);
-    }
-
-    // Copy the real and imaginary values in, scaling to fit in 8 bits
-    for (unsigned int i = 0; i < (img.height*img.width); i++){
-        abs_img[i] = (cabs(img.raw_vals[i]));
-    }
-
-    // Create the FreeImages for writing
-    FIBITMAP *abs_freeimg = FreeImage_ConvertFromRawBits(abs_img, img.width, img.height, img.width, 8, 0, 0, 0, FALSE);
-
-    // Write the files
-    char pathname[200];
-    snprintf(pathname, 200, "%s_abs.png", prefix);
-    FreeImage_Save(FIF_PNG, abs_freeimg, pathname, 0);
-
-    // Free memory
-    FreeImage_Unload(abs_freeimg);
-    free(abs_img);
-    abs_img = NULL;
+    // Save with no value scaling
+    save_image_scale(img, prefix, 0, 255);
 
 }
 
+
+void save_image_autoscale(struct image_s img, const char* const prefix){
+
+    double img_min = DBL_MAX;
+    double img_max = DBL_MIN;
+
+    // Find the minimum and maximum of each component
+    for (unsigned int i = 0; i < (img.height*img.width); i++){
+        if (cabs(img.raw_vals[i]) < img_min){
+            img_min = cabs(img.raw_vals[i]);
+        }
+        if (cabs(img.raw_vals[i]) > img_max){
+            img_max = cabs(img.raw_vals[i]);
+        }
+    }
+
+    // Save the image
+    save_image_scale(img, prefix, img_min, img_max);
+
+}

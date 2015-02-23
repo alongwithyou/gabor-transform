@@ -248,7 +248,7 @@ void disp_gabor_filter_bank(struct gabor_filter_bank_s bank){
 
     // Future me, I am tired and I am SO SORRY for writing this line of code.
     shift_filter(*((struct filter_s*)&img));
-    save_image_scale(img, "coverage");
+    save_image_autoscale(img, "coverage");
 
     free_image(img);
     free_filter(filt);

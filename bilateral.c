@@ -19,16 +19,16 @@ struct image_s bilateral_filter(struct image_s img, double sigma_spatial, double
     int center_y = filt_height/2;
 
     // iterate over each image pixel
-    for (unsigned int i = 0; i < img.height; i++){
+    for (int i = 0; i < img.height; i++){
         printf("%d\n", i);
-        for (unsigned int j = 0; j < img.width; j++){
+        for (int j = 0; j < img.width; j++){
 
             // Normalization term for the filter
             double filt_weight = 0;
 
             // Iterate over each filter pixel
-            for (unsigned int m = 0; m < filt_height; m++){
-                for (unsigned int n = 0; n < filt_width; n++){
+            for (int m = 0; m < filt_height; m++){
+                for (int n = 0; n < filt_width; n++){
 
                     // Image pixel "under" filter pixel (can be outside image size!)
                     int img_y = ((m - center_y) + i) % img.height;

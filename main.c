@@ -3,7 +3,6 @@
 #include "gabor.h"
 #include "filter.h"
 #include "convolve.h"
-#include "util.h"
 #include "bilateral.h"
 
 #include <stdio.h>
@@ -12,6 +11,19 @@
 #include <complex.h>
 #include <fftw3.h>
 
+int main(int argc, char* argv[]){
+    FreeImage_Initialise(FALSE);
+
+    struct gabor_filter_bank_s bank;
+
+    bank = init_gabor_filter_bank_default(512, 512);
+
+    disp_gabor_filter_bank(bank, "aaa");
+
+    free_gabor_filter_bank(bank);
+
+}
+/*
 int main(int argc, char* argv[]){
 
     // Initialize the image I/O library
@@ -84,3 +96,5 @@ int main(int argc, char* argv[]){
     return 0;
 
 }
+
+*/

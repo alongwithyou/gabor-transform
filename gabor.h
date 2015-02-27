@@ -5,6 +5,8 @@
 
 struct gabor_filter_bank_s init_gabor_filter_bank_default(const unsigned int height, const unsigned int width);
 
+struct gabor_filter_bank_s init_gabor_filter_bank_exhaustive(const unsigned int height, const unsigned int width);
+
 struct gabor_responses_s init_gabor_responses_empty(const unsigned int height, const unsigned int width, const unsigned int num_filters);
 
 struct gabor_responses_s apply_gabor_filter_bank(struct image_s img, struct gabor_filter_bank_s bank);

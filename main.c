@@ -12,15 +12,37 @@
 #include <fftw3.h>
 
 int main(int argc, char* argv[]){
+
     FreeImage_Initialise(FALSE);
 
-    struct gabor_filter_bank_s bank;
 
+    struct image_s img;
+    struct image_s img_reconstruct;
+    struct gabor_filter_bank_s bank;
+    struct gabor_responses_s resps;
+
+    img = init_image_from_path("/home/glenn/documents/schoolwork/grad/thesis/imgs/lena_bw.tif");
+
+    //bank = init_gabor_filter_bank_exhaustive(512, 512);
     bank = init_gabor_filter_bank_default(512, 512);
 
     disp_gabor_filter_bank(bank, "aaa");
 
+    resps = apply_gabor_filter_bank(img, bank);
+
+    img_reconstruct = reconstruct_image_from_responses(resps);
+
+    save_image_noscale(img_reconstruct, "aaa");
+    save_image_autoscale(img_reconstruct, "bbb");
+
     free_gabor_filter_bank(bank);
+    free_gabor_responses(resps);
+    free_image(img);
+    free_image(img_reconstruct);
+
+
+    fftw_cleanup();
+    FreeImage_DeInitialise();
 
 }
 /*

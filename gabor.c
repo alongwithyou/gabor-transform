@@ -65,7 +65,62 @@ struct gabor_filter_bank_s init_gabor_filter_bank_default(const unsigned int hei
 }
 
 
+struct gabor_filter_bank_s init_gabor_filter_bank_exhaustive(const unsigned int height, const unsigned int width){
 
+    // The frequency standard deviation for the Gabor filters
+    const double sigmafreq = 16.0/width;
+
+    // The maximum number of filters that fit in the image half-width
+    int filt_count = (0.5)/(2*sigmafreq*sqrt(2*log(2)));
+
+    const int num_filters = (filt_count*2) * (filt_count);
+
+    struct gabor_filter_bank_s bank;
+
+    bank.height = height;
+    bank.width = width;
+    bank.num_filters = num_filters;
+
+    // Allocate the arrays within the filter bank
+    bank.angles = (double*)malloc(num_filters*sizeof(double));
+    if (bank.angles == NULL){
+        fprintf(stderr, "Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
+    bank.sigmas = (double*)malloc(num_filters*sizeof(double));
+    if (bank.sigmas == NULL){
+        fprintf(stderr, "Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
+    bank.freqs = (double*)malloc(num_filters*sizeof(double));
+    if (bank.freqs == NULL){
+        fprintf(stderr, "Malloc failed\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // when you change this, don't forget to change num_filters!
+    // for now we're just looping over ints, but this will eventually be nested whiles
+    unsigned int i = 0;
+    for (int n = (-1*filt_count); n < filt_count; n++){
+        for (int m = 0; m < filt_count; m++){
+
+            double xfreq = 2*n*sigmafreq*sqrt(2*log(2)) + sigmafreq*sqrt(2*log(2));
+            double yfreq = 2*m*sigmafreq*sqrt(2*log(2)) + sigmafreq*sqrt(2*log(2));
+
+            bank.sigmas[i] = 1.0/(2*PI*sigmafreq);
+            bank.freqs[i] = sqrt(pow(xfreq, 2) + pow(yfreq, 2));
+            bank.angles[i] = atan2(yfreq, xfreq);
+
+            i++;
+
+        }
+    }
+
+
+    return bank;
+
+
+}
 
 
 
@@ -142,8 +197,8 @@ struct filter_s init_gabor_filter_from_params(const double freq, const double an
             double y = y_shift*cos(angle) - x_shift*sin(angle);
 
             // Build the filter
-            filt.vals[i][j] = pow(freq*sqrt(PI)/(3*sqrt(log(2))),2)*cexp(-1 * (pow(x, 2) + pow(y,2))/(2 * pow(sigma, 2))) * cexp((double complex)I*2*PI*freq*x);
-
+            //filt.vals[i][j] = pow(freq*sqrt(PI)/(3*sqrt(log(2))),2)*cexp(-1 * (pow(x, 2) + pow(y,2))/(2 * pow(sigma, 2))) * cexp((double complex)I*2*PI*freq*x);
+            filt.vals[i][j] = (1/pow(sigma,2))*cexp(-1 * (pow(x, 2) + pow(y,2))/(2 * pow(sigma, 2))) * cexp((double complex)I*2*PI*freq*x);
         }
     }
 

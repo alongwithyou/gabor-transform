@@ -10,36 +10,64 @@
 #include <FreeImage.h>
 #include <complex.h>
 #include <fftw3.h>
+#include <dirent.h>
+#include <string.h>
 
 int main(int argc, char* argv[]){
 
+    // Path to process
+    char path[] = "/home/glenn/documents/schoolwork/grad/thesis/src/texture_grabber/database/";
+
+    // Initialize the image IO library
     FreeImage_Initialise(FALSE);
 
-
+    // Structures for Gabor Transform
     struct image_s img;
-    struct image_s img_reconstruct;
     struct gabor_filter_bank_s bank;
     struct gabor_responses_s resps;
 
-    img = init_image_from_path("/home/glenn/documents/schoolwork/grad/thesis/imgs/lena_bw.tif");
+    // Structures for directory parsing
+    struct dirent *entry;
+    DIR *dp;
 
-    //bank = init_gabor_filter_bank_exhaustive(512, 512);
-    bank = init_gabor_filter_bank_default(512, 512);
+    // Open the directory
+    dp = opendir(path);
+    if (dp == NULL) {
+        exit(EXIT_FAILURE);
+    }
 
-    disp_gabor_filter_bank(bank, "aaa");
+    bank = init_gabor_filter_bank_exhaustive(800, 800);
+    //bank = init_gabor_filter_bank_default(800, 800);
+    //disp_gabor_filter_bank(bank, "aaa");
 
-    resps = apply_gabor_filter_bank(img, bank);
+    // Process each file in the directory
+    while((entry = readdir(dp))){
+        if (strcmp(entry->d_name, ".") && strcmp(entry->d_name, "..")){
 
-    img_reconstruct = reconstruct_image_from_responses(resps);
+            printf("%s\n",(entry->d_name));
 
-    save_image_noscale(img_reconstruct, "aaa");
-    save_image_autoscale(img_reconstruct, "bbb");
+            char image_path[300];
+            image_path[0] = '\0';
+
+            strncat(image_path, path, 300);
+            strncat(image_path, entry->d_name, 300);
+
+            img = init_image_from_path(image_path);
+            //img = init_image_from_path("/home/glenn/documents/schoolwork/grad/thesis/imgs/lena_bw.tif");
+
+            resps = apply_gabor_filter_bank(img, bank);
+
+            save_gabor_responses(resps, entry->d_name);
+
+            free_gabor_responses(resps);
+            free_image(img);
+
+        }
+    }
 
     free_gabor_filter_bank(bank);
-    free_gabor_responses(resps);
-    free_image(img);
-    free_image(img_reconstruct);
 
+    closedir(dp);
 
     fftw_cleanup();
     FreeImage_DeInitialise();

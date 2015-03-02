@@ -68,12 +68,13 @@ struct gabor_filter_bank_s init_gabor_filter_bank_default(const unsigned int hei
 struct gabor_filter_bank_s init_gabor_filter_bank_exhaustive(const unsigned int height, const unsigned int width){
 
     // The frequency standard deviation for the Gabor filters
-    const double sigmafreq = 16.0/width;
+    const double sigmafreq = 0.025;
 
     // The maximum number of filters that fit in the image half-width
     int filt_count = (0.5)/(2*sigmafreq*sqrt(2*log(2)));
 
     const int num_filters = (filt_count*2) * (filt_count);
+    printf("%d\n", num_filters);
 
     struct gabor_filter_bank_s bank;
 
@@ -320,6 +321,32 @@ void disp_gabor_filter_bank(struct gabor_filter_bank_s bank, const char* const p
 
 
 
+
+void save_gabor_responses(struct gabor_responses_s resps, const char* const prefix){
+
+    FILE* fid;
+    char filename[200];
+
+    snprintf(filename, 200, "%s.dat", prefix);
+
+    fid = fopen(filename, "w");
+
+    unsigned int height = resps.channels[0].height;
+    unsigned int width = resps.channels[0].width;
+
+    fwrite(&height, sizeof(height), 1, fid);
+    fwrite(&width, sizeof(width), 1, fid);
+    fwrite(&resps.num_channels, sizeof(resps.num_channels), 1, fid);
+
+    for (unsigned int i = 0; i < resps.num_channels; i++){
+
+        fwrite(resps.channels[i].raw_vals, sizeof(resps.channels[i].raw_vals[0]), width*height, fid);
+
+    }
+
+    fclose(fid);
+
+}
 
 
 

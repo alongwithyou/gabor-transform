@@ -18,6 +18,8 @@ struct image_s reconstruct_image_from_responses(struct gabor_responses_s resps);
 
 void disp_gabor_filter_bank(struct gabor_filter_bank_s bank, const char* const prefix);
 
+void save_gabor_responses(struct gabor_responses_s resps, const char* const prefix);
+
 void free_gabor_responses(struct gabor_responses_s resps);
 void free_gabor_filter_bank(struct gabor_filter_bank_s bank);
 

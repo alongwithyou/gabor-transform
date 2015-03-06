@@ -3,8 +3,6 @@
 
 #include "types.h"
 
-
-struct image_s bilateral_filter(struct image_s img, double sigma_spatial, double sigma_range);
-
+void bilateral_filter(struct image_s img_in, struct image_s img_out, double sigma_spatial, double sigma_range);
 
 #endif

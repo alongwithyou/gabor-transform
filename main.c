@@ -53,7 +53,6 @@ int main(int argc, char* argv[]){
             strncat(image_path, entry->d_name, 300);
 
             img = init_image_from_path(image_path);
-            //img = init_image_from_path("/home/glenn/documents/schoolwork/grad/thesis/imgs/lena_bw.tif");
 
             resps = apply_gabor_filter_bank(img, bank);
 
@@ -66,6 +65,8 @@ int main(int argc, char* argv[]){
     }
 
     free_gabor_filter_bank(bank);
+    free_image(img);
+    free_gabor_responses(resps);
 
     closedir(dp);
 

@@ -16,7 +16,7 @@
 int main(int argc, char* argv[]){
 
     // Path to process
-    char path[] = "/home/glenn/documents/schoolwork/grad/thesis/src/texture_grabber/database/";
+    char path[] = "/home/glenn/documents/schoolwork/grad/thesis/imgs/temp/";
 
     // Initialize the image IO library
     FreeImage_Initialise(FALSE);
@@ -36,9 +36,9 @@ int main(int argc, char* argv[]){
         exit(EXIT_FAILURE);
     }
 
-    bank = init_gabor_filter_bank_exhaustive(800, 800);
-    //bank = init_gabor_filter_bank_default(800, 800);
-    //disp_gabor_filter_bank(bank, "aaa");
+    //bank = init_gabor_filter_bank_exhaustive(800, 800);
+    bank = init_gabor_filter_bank_default(800, 800);
+    disp_gabor_filter_bank(bank, "aaa");
 
     // Process each file in the directory
     while((entry = readdir(dp))){

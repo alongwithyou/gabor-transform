@@ -60,6 +60,14 @@ struct gabor_filter_bank_s init_gabor_filter_bank_default(const unsigned int hei
         }
     }
 
+    // Add the low-pass filter in
+    /*
+    bank.angles[16] = 0;
+    bank.freqs[16] = 0;
+    bank.sigmas[16] = (3*sqrt(2*log(2))) / (4*PI*bank.freqs[15]);
+    */
+
+
     return bank;
 
 }
@@ -68,13 +76,14 @@ struct gabor_filter_bank_s init_gabor_filter_bank_default(const unsigned int hei
 struct gabor_filter_bank_s init_gabor_filter_bank_exhaustive(const unsigned int height, const unsigned int width){
 
     // The frequency standard deviation for the Gabor filters
-    const double sigmafreq = 0.025;
+    const double sigmafreq1 = 0.025;
+    const double sigmafreq2 = 0.05;
 
     // The maximum number of filters that fit in the image half-width
-    int filt_count = (0.5)/(2*sigmafreq*sqrt(2*log(2)));
+    int filt_count1 = (0.5)/(2*sigmafreq1*sqrt(2*log(2)));
+    int filt_count2 = (0.5)/(2*sigmafreq2*sqrt(2*log(2)));
 
-    const int num_filters = (filt_count*2) * (filt_count);
-    printf("%d\n", num_filters);
+    const int num_filters = (filt_count1*2) * (filt_count1) + (filt_count2*2) * (filt_count2);
 
     struct gabor_filter_bank_s bank;
 
@@ -102,13 +111,13 @@ struct gabor_filter_bank_s init_gabor_filter_bank_exhaustive(const unsigned int 
     // when you change this, don't forget to change num_filters!
     // for now we're just looping over ints, but this will eventually be nested whiles
     unsigned int i = 0;
-    for (int n = (-1*filt_count); n < filt_count; n++){
-        for (int m = 0; m < filt_count; m++){
+    for (int n = (-1*filt_count1); n < filt_count1; n++){
+        for (int m = 0; m < filt_count1; m++){
 
-            double xfreq = 2*n*sigmafreq*sqrt(2*log(2)) + sigmafreq*sqrt(2*log(2));
-            double yfreq = 2*m*sigmafreq*sqrt(2*log(2)) + sigmafreq*sqrt(2*log(2));
+            double xfreq = 2*n*sigmafreq1*sqrt(2*log(2)) + sigmafreq1*sqrt(2*log(2));
+            double yfreq = 2*m*sigmafreq1*sqrt(2*log(2)) + sigmafreq1*sqrt(2*log(2));
 
-            bank.sigmas[i] = 1.0/(2*PI*sigmafreq);
+            bank.sigmas[i] = 1.0/(2*PI*sigmafreq1);
             bank.freqs[i] = sqrt(pow(xfreq, 2) + pow(yfreq, 2));
             bank.angles[i] = atan2(yfreq, xfreq);
 
@@ -117,6 +126,20 @@ struct gabor_filter_bank_s init_gabor_filter_bank_exhaustive(const unsigned int 
         }
     }
 
+    for (int n = (-1*filt_count2); n < filt_count2; n++){
+        for (int m = 0; m < filt_count2; m++){
+
+            double xfreq = 2*n*sigmafreq2*sqrt(2*log(2)) + sigmafreq2*sqrt(2*log(2));
+            double yfreq = 2*m*sigmafreq2*sqrt(2*log(2)) + sigmafreq2*sqrt(2*log(2));
+
+            bank.sigmas[i] = 1.0/(2*PI*sigmafreq2);
+            bank.freqs[i] = sqrt(pow(xfreq, 2) + pow(yfreq, 2));
+            bank.angles[i] = atan2(yfreq, xfreq);
+
+            i++;
+
+        }
+    }
 
     return bank;
 
@@ -200,6 +223,8 @@ struct filter_s init_gabor_filter_from_params(const double freq, const double an
             // Build the filter
             //filt.vals[i][j] = pow(freq*sqrt(PI)/(3*sqrt(log(2))),2)*cexp(-1 * (pow(x, 2) + pow(y,2))/(2 * pow(sigma, 2))) * cexp((double complex)I*2*PI*freq*x);
             filt.vals[i][j] = (1/pow(sigma,2))*cexp(-1 * (pow(x, 2) + pow(y,2))/(2 * pow(sigma, 2))) * cexp((double complex)I*2*PI*freq*x);
+            //filt.vals[i][j] = cexp((double complex)I*2*PI*freq*x);
+
         }
     }
 
@@ -265,6 +290,8 @@ struct image_s reconstruct_image_from_responses(struct gabor_responses_s resps){
 
 void disp_gabor_filter_bank(struct gabor_filter_bank_s bank, const char* const prefix){
 
+    FILE* fid = fopen("filterdata.csv", "w");
+
     // get image dims
     const unsigned int height = 512;
     const unsigned int width = 512;
@@ -279,6 +306,10 @@ void disp_gabor_filter_bank(struct gabor_filter_bank_s bank, const char* const p
     char filtname[200];
 
     for (unsigned int f = 0; f < bank.num_filters; f++){
+
+        double max_val = DBL_MIN;
+
+        fprintf(fid, "%u,%f,%f,%f\n",f, bank.freqs[f], bank.angles[f], bank.sigmas[f]);
 
         // initialize a temporary filter
         struct filter_s temp_filt = init_gabor_filter_from_params(bank.freqs[f], bank.angles[f], bank.sigmas[f], height, width);
@@ -297,9 +328,15 @@ void disp_gabor_filter_bank(struct gabor_filter_bank_s bank, const char* const p
         // Execute the plan
         fftw_execute(filt_plan);
 
+        for (unsigned int i = 0; i < width*height; i++){
+            if (abs(filt_fft.raw_vals[i]) > max_val){
+                max_val = abs(filt_fft.raw_vals[i]);
+            }
+        }
+
         // add the filter to the image response
         for (unsigned int i = 0; i < width*height; i++){
-            img.raw_vals[i] += filt_fft.raw_vals[i];
+            img.raw_vals[i] += filt_fft.raw_vals[i]/max_val;
         }
 
         // Free the temporary filter
@@ -313,6 +350,7 @@ void disp_gabor_filter_bank(struct gabor_filter_bank_s bank, const char* const p
     snprintf(filtname, 200, "%s_fourier", prefix);
     save_image_autoscale(img, filtname);
 
+    fclose(fid);
     free_image(img);
     free_filter(filt);
     free_filter(filt_fft);
